@@ -268,12 +268,15 @@ def to_cnf(s):
     >>> to_cnf('~(B | C)')
     (~B & ~C)
     """
+    print("Calling to_cnf for {}".format(s))
     s = expr(s)
     if isinstance(s, str):
         s = expr(s)
     s = eliminate_implications(s)  # Steps 1, 2 from p. 253
     s = move_not_inwards(s)  # Step 3
-    return distribute_and_over_or(s)  # Step 4
+    a = distribute_and_over_or(s)
+    print("Returning {}".format(a))
+    return a  # Step 4
 
 
 def eliminate_implications(s):
@@ -393,7 +396,11 @@ def conjuncts(s):
     >>> conjuncts(A | B)
     [(A | B)]
     """
-    return dissociate('&', [s])
+    print("Returning conjuncts for: {}".format(s))
+    a = dissociate('&', [s])
+    print("Returning: {}".format(a))
+
+    return a
 
 
 def disjuncts(s):
