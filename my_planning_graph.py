@@ -294,6 +294,18 @@ class PlanningGraph():
             if self.s_levels[level] == self.s_levels[level - 1]:
                 leveled = True
 
+
+    def all_prenodes_in_s_level(self, proposed, slevel):
+            all_matched = True
+            for prenode in proposed.prenodes:
+                matched = False
+                for snode in slevel:
+                    if prenode == snode:
+                        matched = True
+                        break
+                all_matched = all_matched and matched
+            return all_matched
+
     def add_action_level(self, level):
         """ add an A (action) level to the Planning Graph
 
@@ -305,11 +317,52 @@ class PlanningGraph():
         """
         # TODO add action A level to the planning graph as described in the Russell-Norvig text
         # 1. determine what actions to add and create those PgNode_a objects
+
+
+        # 1a. From text: For every positive and negative literal C, we add to the problem a persistence action with precondition C and effect C
+
+
         # 2. connect the nodes to the previous S literal level
         # for example, the A0 level will iterate through all possible actions for the problem and add a PgNode_a to a_levels[0]
         #   set iff all prerequisite literals for the action hold in S0.  This can be accomplished by testing
         #   to see if a proposed PgNode_a has prenodes that are a subset of the previous S level.  Once an
         #   action node is added, it MUST be connected to the S node instances in the appropriate s_level set.
+
+        self.a_levels.append(set())
+
+        slevel = self.s_levels[level]
+        alevel = self.a_levels[level]
+
+        for action in self.all_actions:
+            if "Noop_pos" in action.name :
+                print("Positive noop, considering")
+                print(action)
+                proposed = PgNode_a(action)
+                if(self.all_prenodes_in_s_level(proposed,slevel)) :
+                    print("All prenodes in s level, adding NoOp pos")
+                    alevel.add(proposed)
+                else :
+                    print("Not all prenodes in s level, not adding")
+            elif "Noop_neg" in action.name :
+                print("Negative noop precondition, considering")
+                print(action)
+                proposed = PgNode_a(action)
+                if(self.all_prenodes_in_s_level(proposed,slevel)) :
+                    print("All prenodes in s level, adding NoOp neg")
+                    alevel.add(proposed)
+                else :
+                    print("Not all prenodes in s level, not adding")
+
+            else:
+                print("Real action")
+                print(action)
+                proposed = PgNode_a(action)
+                if(self.all_prenodes_in_s_level(proposed,slevel)) :
+                    print("Adding real action")
+                    alevel.add(proposed)
+                else :
+                    print("Not all prenodes in s level, not adding")
+
 
     def add_literal_level(self, level):
         """ add an S (literal) level to the Planning Graph

@@ -396,9 +396,7 @@ def conjuncts(s):
     >>> conjuncts(A | B)
     [(A | B)]
     """
-    print("Returning conjuncts for: {}".format(s))
     a = dissociate('&', [s])
-    print("Returning: {}".format(a))
 
     return a
 
