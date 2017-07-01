@@ -337,44 +337,36 @@ class PlanningGraph():
 
         for action in self.all_actions:
             if "Noop_pos" in action.name :
-                print("Positive noop, considering")
-                print(action)
+                # print("Positive noop, considering")
+                # print(action)
                 proposed = PgNode_a(action)
                 all_matched, matches = self.all_prenodes_in_s_level(proposed,slevel)
                 if(all_matched) :
-                    print("All prenodes in s level, adding NoOp pos")
+                    # print("All prenodes in s level, adding NoOp pos")
                     alevel.add(proposed)
                     for s_match in matches :
                         s_match.children.add(proposed)
-                else :
-                    print("Not all prenodes in s level, not adding")
             elif "Noop_neg" in action.name :
-                print("Negative noop precondition, considering")
-                print(action)
+                # print("Negative noop precondition, considering")
+                # print(action)
                 proposed = PgNode_a(action)
                 all_matched, matches = self.all_prenodes_in_s_level(proposed,slevel)
                 if(all_matched) :
-                    print("All prenodes in s level, adding NoOp neg")
+                    # print("All prenodes in s level, adding NoOp neg")
                     alevel.add(proposed)
                     # 2. connect the nodes to the previous S literal level
                     for s_match in matches :
                         s_match.children.add(proposed)
-                else :
-                    print("Not all prenodes in s level, not adding")
-
             else:
-                print("Real action")
-                print(action)
+                # print("Real action")
+                # print(action)
                 proposed = PgNode_a(action)
                 all_matched, matches = self.all_prenodes_in_s_level(proposed,slevel)
                 if(all_matched) :
-                    print("Adding real action")
+                    # print("Adding real action")
                     alevel.add(proposed)
                     for s_match in matches :
                         s_match.children.add(proposed)
-                else :
-                    print("Not all prenodes in s level, not adding")
-
 
     def add_literal_level(self, level):
         """ add an S (literal) level to the Planning Graph
@@ -620,10 +612,12 @@ class PlanningGraph():
         for parent1 in node_s1.parents :
             all_mutex = False
             for parent2 in node_s2.parents :
+                first_set = False
                 if parent1.is_mutex(parent2) :
                     all_mutex = True
                 else :
                     all_mutex = False
+                    break
             # first node parent is mutex with all parents of second node
             if all_mutex :
                 count_mutual_mutex_parents += 1
@@ -633,12 +627,31 @@ class PlanningGraph():
 
         return False
 
+    def cost_first_level_with_goal(self, goal_item, start_at):
+        s_level_num = 0
+        for i, slevel in enumerate(self.s_levels[start_at:]):
+            s_level_num += i
+            for state in slevel:
+                if goal_item == state.symbol:
+                    return s_level_num + start_at
+
+
     def h_levelsum(self) -> int:
         """The sum of the level costs of the individual goals (admissible if goals independent)
 
         :return: int
         """
         level_sum = 0
+        first_goal_found = False
+        level_next = 0
         # TODO implement
         # for each goal in the problem, determine the level cost, then add them together
+        for goal_item in self.problem.goal :
+            cost = self.cost_first_level_with_goal(goal_item, level_next)
+            if not first_goal_found :
+                first_goal_found = True
+            if first_goal_found :
+                level_next = max(cost + 1, level_next + 1)
+            level_sum += cost
+
         return level_sum
