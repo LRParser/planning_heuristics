@@ -530,6 +530,31 @@ class PlanningGraph():
         :return: bool
         """
 
+        node_a1_action = node_a1.action
+        node_a2_action = node_a2.action
+
+        for clause in node_a1_action.precond_pos :
+            for effect in node_a2_action.precond_neg :
+                if(clause == effect) :
+                    return True
+        for clause in node_a1_action.precond_neg :
+            for effect in node_a2_action.precond_pos :
+                if(clause == effect) :
+                    return True
+        for clause in node_a2_action.precond_pos:
+            for effect in node_a1_action.precond_neg:
+                if (clause == effect):
+                    return True
+        for clause in node_a2_action.precond_neg:
+            for effect in node_a1_action.precond_pos:
+                if (clause == effect):
+                    return True
+
+        for parent1 in node_a1.parents :
+            for parent2 in node_a2.parents :
+                if(parent1.is_mutex(parent2)) :
+                    return True
+
         # TODO test for Competing Needs between nodes
         return False
 
@@ -566,6 +591,10 @@ class PlanningGraph():
         :return: bool
         """
         # TODO test for negation between nodes
+
+        if node_s1.is_pos != node_s2.is_pos and node_s1.symbol == node_s2.symbol :
+            return True
+
         return False
 
     def inconsistent_support_mutex(self, node_s1: PgNode_s, node_s2: PgNode_s):
@@ -584,7 +613,24 @@ class PlanningGraph():
         :param node_s2: PgNode_s
         :return: bool
         """
-        # TODO test for Inconsistent Support between nodes
+
+        # Iterate all actions that could achieve the first node
+
+        count_mutual_mutex_parents = 0
+        for parent1 in node_s1.parents :
+            all_mutex = False
+            for parent2 in node_s2.parents :
+                if parent1.is_mutex(parent2) :
+                    all_mutex = True
+                else :
+                    all_mutex = False
+            # first node parent is mutex with all parents of second node
+            if all_mutex :
+                count_mutual_mutex_parents += 1
+
+        if count_mutual_mutex_parents == len(node_s1.parents) :
+            return True
+
         return False
 
     def h_levelsum(self) -> int:

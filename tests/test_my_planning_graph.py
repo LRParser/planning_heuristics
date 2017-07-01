@@ -94,6 +94,7 @@ class TestPlanningGraphMutex(unittest.TestCase):
                          "Same literal nodes found to be Negation mutex")
 
     def test_inconsistent_support_mutex(self):
+
         self.assertFalse(PlanningGraph.inconsistent_support_mutex(self.pg, self.ns1, self.ns2),
                          "Independent node paths should NOT be inconsistent-support mutex")
         mutexify(self.na1, self.na2)
@@ -102,10 +103,13 @@ class TestPlanningGraphMutex(unittest.TestCase):
 
         self.na6 = PgNode_a(Action(expr('Go(everywhere)'),
                                    [[], []], [[expr('At(here)'), expr('At(there)')], []]))
+        # na6 produces at 'here' and at 'there'
         self.na6.children.add(self.ns1)
         self.ns1.parents.add(self.na6)
         self.na6.children.add(self.ns2)
         self.ns2.parents.add(self.na6)
+
+        # Can also
         self.na6.parents.add(self.ns3)
         self.na6.parents.add(self.ns4)
         mutexify(self.na1, self.na6)
