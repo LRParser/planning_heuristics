@@ -461,6 +461,20 @@ class PlanningGraph():
         :return: bool
         """
         # TODO test for Inconsistent Effects between nodes
+
+        # First, test if one action has a positive effect that the other directly negates
+        node_a1_action = node_a1.action
+        node_a2_action = node_a2.action
+
+        for eff_add in node_a1_action.effect_add :
+            for eff_remove in node_a2_action.effect_rem :
+                if(eff_add == eff_remove) :
+                    return True
+        for eff_remove in node_a1_action.effect_rem :
+            for eff_add in node_a2_action.effect_add :
+                if(eff_remove == eff_add) :
+                    return True
+
         return False
 
     def interference_mutex(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
@@ -477,7 +491,32 @@ class PlanningGraph():
         :param node_a2: PgNode_a
         :return: bool
         """
-        # TODO test for Interference between nodes
+        # TODO test for Interference between nodes, e.g.
+        interfere_1 = PgNode_a(Action(expr('Noop(At(here))'),
+                                   [[expr('At(here)')], []], [[expr('At(here)')], []]))
+        interfere_2 = PgNode_a(Action(expr('Reverse(At(here))'),
+                                   [[expr('At(here)')], []], [[], [expr('At(here)')]]))
+
+        node_a1_action = node_a1.action
+        node_a2_action = node_a2.action
+
+        for clause in node_a1_action.precond_pos :
+            for effect in node_a2_action.effect_rem :
+                if(clause == effect) :
+                    return True
+        for clause in node_a1_action.precond_neg :
+            for effect in node_a2_action.effect_rem :
+                if(clause == effect) :
+                    return True
+        for clause in node_a2_action.precond_pos :
+            for effect in node_a1_action.effect_rem :
+                if(clause == effect) :
+                    return True
+        for clause in node_a2_action.precond_neg :
+            for effect in node_a1_action.effect_rem :
+                if(clause == effect) :
+                    return True
+
         return False
 
     def competing_needs_mutex(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
