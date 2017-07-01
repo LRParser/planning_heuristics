@@ -484,10 +484,6 @@ class PlanningGraph():
         :return: bool
         """
         # TODO test for Interference between nodes, e.g.
-        interfere_1 = PgNode_a(Action(expr('Noop(At(here))'),
-                                   [[expr('At(here)')], []], [[expr('At(here)')], []]))
-        interfere_2 = PgNode_a(Action(expr('Reverse(At(here))'),
-                                   [[expr('At(here)')], []], [[], [expr('At(here)')]]))
 
         node_a1_action = node_a1.action
         node_a2_action = node_a2.action
