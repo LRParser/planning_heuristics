@@ -297,14 +297,16 @@ class PlanningGraph():
 
     def all_prenodes_in_s_level(self, proposed, slevel):
             all_matched = True
+            s_level_nodes_to_match = set()
             for prenode in proposed.prenodes:
                 matched = False
                 for snode in slevel:
                     if prenode == snode:
                         matched = True
+                        s_level_nodes_to_match.add(prenode)
                         break
                 all_matched = all_matched and matched
-            return all_matched
+            return all_matched, s_level_nodes_to_match
 
     def add_action_level(self, level):
         """ add an A (action) level to the Planning Graph
@@ -338,18 +340,25 @@ class PlanningGraph():
                 print("Positive noop, considering")
                 print(action)
                 proposed = PgNode_a(action)
-                if(self.all_prenodes_in_s_level(proposed,slevel)) :
+                all_matched, matches = self.all_prenodes_in_s_level(proposed,slevel)
+                if(all_matched) :
                     print("All prenodes in s level, adding NoOp pos")
                     alevel.add(proposed)
+                    for s_match in matches :
+                        s_match.children.add(proposed)
                 else :
                     print("Not all prenodes in s level, not adding")
             elif "Noop_neg" in action.name :
                 print("Negative noop precondition, considering")
                 print(action)
                 proposed = PgNode_a(action)
-                if(self.all_prenodes_in_s_level(proposed,slevel)) :
+                all_matched, matches = self.all_prenodes_in_s_level(proposed,slevel)
+                if(all_matched) :
                     print("All prenodes in s level, adding NoOp neg")
                     alevel.add(proposed)
+                    # 2. connect the nodes to the previous S literal level
+                    for s_match in matches :
+                        s_match.children.add(proposed)
                 else :
                     print("Not all prenodes in s level, not adding")
 
@@ -357,9 +366,12 @@ class PlanningGraph():
                 print("Real action")
                 print(action)
                 proposed = PgNode_a(action)
-                if(self.all_prenodes_in_s_level(proposed,slevel)) :
+                all_matched, matches = self.all_prenodes_in_s_level(proposed,slevel)
+                if(all_matched) :
                     print("Adding real action")
                     alevel.add(proposed)
+                    for s_match in matches :
+                        s_match.children.add(proposed)
                 else :
                     print("Not all prenodes in s level, not adding")
 
@@ -381,6 +393,16 @@ class PlanningGraph():
         #   may be "added" to the set without fear of duplication.  However, it is important to then correctly create and connect
         #   all of the new S nodes as children of all the A nodes that could produce them, and likewise add the A nodes to the
         #   parent sets of the S nodes
+
+        self.s_levels.append(set())
+        slevel = self.s_levels[level]
+
+        a_level = self.a_levels[level - 1]
+        for a_node in a_level :
+            s_effects = a_node.effnodes
+            for s_eff_node in s_effects :
+                a_node.children.add(s_eff_node)
+                slevel.add(s_eff_node)
 
     def update_a_mutex(self, nodeset):
         """ Determine and update sibling mutual exclusion for A-level nodes
